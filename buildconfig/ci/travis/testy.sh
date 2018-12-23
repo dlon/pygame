@@ -14,8 +14,11 @@ function install_or_upgrade {
       echo "latest version is installed"
     fi
   else
-    brew deps "$1"
     echo "BREW DEPS $1"
+    brew deps "$1"
+    echo "BREW DEPS $@"
+    brew deps "$@"
+    # why does it return nothing!?
     # call self recursively here?
     # NOTE: dep is recursive by default
 
