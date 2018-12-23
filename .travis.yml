@@ -18,6 +18,7 @@ matrix:
 
 before_install:
   - function install_or_upgrade {
+      set +e
       if brew ls --versions "$1" >/dev/null; then
         if (brew outdated | grep "$1" >/dev/null); then
           brew upgrade "$1"
@@ -27,6 +28,7 @@ before_install:
       else
         brew install "$@"
       fi
+      set -e
     }
     install_or_upgrade libpng
     brew bottle
