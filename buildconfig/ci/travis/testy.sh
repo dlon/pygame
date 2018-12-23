@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 function install_or_upgrade {
   set +e
   if brew ls --versions "$1" >/dev/null; then
