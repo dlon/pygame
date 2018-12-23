@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 brew update
-brew uninstall --force --ignore-dependencies libpng
+#brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
   set +e
@@ -55,6 +55,7 @@ function install_or_upgrade {
     echo "Copying $bottlefile to $HOME/HomebrewLocal/bottles..."
     mkdir -p "$HOME/HomebrewLocal/bottles"
     cp -f "$bottlefile" "$$HOME/HomebrewLocal/bottles"
+    # ^probably wrong. the former will be found?
 
     # save bottle info file
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
@@ -64,12 +65,28 @@ function install_or_upgrade {
   set -e
 }
 
+function check_local_bottles {
+  for jsonfile in $HOME/HomebrewLocal/json/*.json; do
+    echo "Time to parse $jsonfile."
+    # TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
+    # TODO: check json and bottles here
+    local pkg="$(cut -d'-' -f1 <<<"$jsonfile")"
+    echo "package: $pkg"
+    echo "brew info --json=v1 $pkg"
+    brew info --json=v1 "$pkg"
+    # TODO: check local bottle the same way. but how to find it?
+    echo "brew info --json=v1 $(brew --cache $pkg)"
+    brew info --json=v1 $(brew --cache $pkg)
+    # does this work if we don't uninstall it?
+  done
+}
+
 #libpng--1.6.36.el_capitan.bottle.1.tar.gz
 #libpng--1.6.36.el_capitan.bottle.json
 # match file with json?
 
-# TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
+check_local_bottles
 
 install_or_upgrade libpng
+echo "running brew bottle"
 brew bottle
-echo "Cache `brew --cache libpng`"
