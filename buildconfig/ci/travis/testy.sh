@@ -5,7 +5,7 @@ brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
   set +e
-  # TODO: recursively for dependencies (brew deps). also check if bottled. if not, --include-build for brew deps
+  # TODO: recursively for dependencies (brew deps)
   # if no (bottled) in brew info <pkg>, run brew deps --include-build (includes build dependencies)
   echo "BREW DEPS"
   brew deps $1
@@ -28,7 +28,7 @@ function install_or_upgrade {
     # TODO: bottle name, json file (from "brew bottle" smoehow)
     local bottlefile=$(find . -name $1*.bottle.*.gz)
     echo "brew install this bottlefile: $(bottlefile)"
-    brew install $(bottlefile)
+    brew install $bottlefile
     # TODO: find json file properly
     echo "brew bottle --merge --write $(find . -name $1*.json)"
     # Add the bottle info into the package's formula
@@ -36,7 +36,7 @@ function install_or_upgrade {
     # TODO: save bottle info file (brew --cache libpng)
     local cachefile=$(brew --cache $1)
     echo "Copying $(bottlefile) to $(cachefile)..."
-    cp -f $(bottlefile) $(cachefile)
+    cp -f $bottlefile $cachefile
   fi
   set -e
 }
