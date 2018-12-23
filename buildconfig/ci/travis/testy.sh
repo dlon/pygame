@@ -15,16 +15,24 @@ function install_or_upgrade {
   else
     brew install --build-bottle "$@"
     echo "json thingy here"
-    brew bottle --json "$@"
+    local bottlefile=$(brew bottle --json "$@" | head -n 1)
     ls
-    #brew uninstall "$@"
+    echo "json file: `find . -name $1*.json`"
+    brew uninstall "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
-    #brew install <bottle>
-    #brew bottle --merge --write <json file>
+    echo "brew install this bottlefile: $(bottlefile)"
+    brew install $(bottlefile)
+    # TODO: find json file properly
+    echo "brew bottle --merge --write $(find . -name $1*.json)"
+    brew bottle --merge --write $(find . -name $1*.json)
     # TODO: save bottle info file (brew --cache libpng)
   fi
   set -e
 }
+
+#libpng--1.6.36.el_capitan.bottle.1.tar.gz
+#libpng--1.6.36.el_capitan.bottle.json
+# match file with json?
 
 install_or_upgrade libpng
 brew bottle
