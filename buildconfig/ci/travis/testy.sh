@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+brew uninstall --force libpng
+
 function install_or_upgrade {
   set +e
   if brew ls --versions "$1" >/dev/null; then
@@ -9,12 +11,12 @@ function install_or_upgrade {
       echo "latest version is installed"
     fi
   else
-    brew install "$@"
+    brew install --build-bottle "$@"
+    brew bottle --json
   fi
   set -e
 }
 
 install_or_upgrade libpng
 brew bottle
-brew bottle --json
-brew --cache libpng
+echo "Cache `brew --cache libpng`"
