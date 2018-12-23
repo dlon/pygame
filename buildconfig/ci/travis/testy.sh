@@ -5,7 +5,9 @@ brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
   set +e
-  # TODO: recursively for dependencies. also check if bottled. if not, --include-build for brew deps
+  # TODO: recursively for dependencies (bottle deps). also check if bottled. if not, --include-build for brew deps
+  echo "BOTTLE DEPS"
+  bottle deps
   if brew ls --versions "$1" >/dev/null; then
     if (brew outdated | grep "$1" >/dev/null); then
       brew upgrade "$1"
@@ -15,11 +17,12 @@ function install_or_upgrade {
   else
     brew install --build-bottle "$@"
     echo "json thingy here"
-    local bottlefile=$(brew bottle --json "$@" | head -n 1)
+    brew bottle --json "$@"
     ls
     echo "json file: `find . -name $1*.json`"
     brew uninstall "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
+    local bottlefile=$(brew --cache "$@" | head -n 1)
     echo "brew install this bottlefile: $(bottlefile)"
     brew install $(bottlefile)
     # TODO: find json file properly
