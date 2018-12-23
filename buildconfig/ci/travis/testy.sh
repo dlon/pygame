@@ -16,6 +16,7 @@ function install_or_upgrade {
     brew install --build-bottle "$@"
     echo "json thingy here"
     brew bottle --json "$@"
+    ls
     #brew uninstall "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
     #brew install <bottle>
