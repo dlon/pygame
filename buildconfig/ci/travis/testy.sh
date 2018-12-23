@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 brew update
-#brew uninstall --force --ignore-dependencies libpng
+brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
   set +e
@@ -46,6 +46,7 @@ function install_or_upgrade {
     # Add the bottle info into the package's formula
     brew bottle --merge --write "$jsonfile"
     echo "there should be a new bottle here now? same name?"
+    # TODO: verify
     ls -l
 
     local cachefile=$(brew --cache $1)
@@ -67,6 +68,7 @@ function install_or_upgrade {
 
 function check_local_bottles {
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
+    [ -e "$jsonfile" ] || continue
     echo "Time to parse $jsonfile."
     # TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
     # TODO: check json and bottles here
