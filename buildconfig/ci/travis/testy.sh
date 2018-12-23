@@ -14,10 +14,15 @@ function install_or_upgrade {
       echo "latest version is installed"
     fi
   else
-    echo "BREW DEPS $1"
-    brew deps "$1"
-    echo "BREW DEPS $@"
-    brew deps "$@"
+    echo "brew info $1"
+    brew info "$1"
+    if (brew info "$1" | grep "(bottled)" >/dev/null); then
+      echo "BREW DEPS $1"
+      brew deps "$1"
+    else
+      echo "BREW DEPS $1 -- include-build"
+      brew deps --include-build "$1"
+    fi
     # why does it return nothing!?
     # call self recursively here?
     # NOTE: dep is recursive by default
@@ -28,21 +33,33 @@ function install_or_upgrade {
     brew bottle --json "$@"
     # TODO: ^ first line in stdout is the bottle file
     # use instead of file cmd. json file has a similar name
-    ls
-    echo "json file: `find . -name $1*.json`"
+    ls -l
+    local jsonfile=$(find . -name $1*.bottle.json)
+    echo "json file: $jsonfile"
     brew uninstall --ignore-dependencies "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
     local bottlefile=$(find . -name $1*.tar.gz)
     echo "brew install this bottlefile: $bottlefile"
     brew install "$bottlefile"
     # TODO: find json file properly
-    echo "brew bottle --merge --write $(find . -name $1*.json)"
+    echo "brew bottle --merge --write $jsonfile"
     # Add the bottle info into the package's formula
-    brew bottle --merge --write $(find . -name $1*.bottle.json)
-    # TODO: save bottle info file (brew --cache libpng)
+    brew bottle --merge --write "$jsonfile"
+    echo "there should be a new bottle here now? same name?"
+    ls -l
+
     local cachefile=$(brew --cache $1)
     echo "Copying $bottlefile to $cachefile..."
     cp -f "$bottlefile" "$cachefile"
+
+    echo "Copying $bottlefile to $HOME/HomebrewLocal/bottles..."
+    mkdir -p "$HOME/HomebrewLocal/bottles"
+    cp -f "$bottlefile" "$$HOME/HomebrewLocal/bottles"
+
+    # save bottle info file
+    echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
+    mkdir -p "$HOME/HomebrewLocal/json"
+    cp -f "$jsonfile" "$HOME/HomebrewLocal/json"
   fi
   set -e
 }
@@ -51,8 +68,8 @@ function install_or_upgrade {
 #libpng--1.6.36.el_capitan.bottle.json
 # match file with json?
 
+# TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
+
 install_or_upgrade libpng
 brew bottle
 echo "Cache `brew --cache libpng`"
-# output: Cache /Users/travis/Library/Caches/Homebrew/downloads/0acae2cec2dc03a719ffe9df2774778541b7bf920acceca88d457e0cf0f50578--libpng-1.6.36.tar.xz
-# TODO: save bottle info file (brew --cache libpng)
