@@ -5,9 +5,11 @@ brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
   set +e
-  # TODO: recursively for dependencies (bottle deps). also check if bottled. if not, --include-build for brew deps
-  echo "BOTTLE DEPS"
-  bottle deps
+  # TODO: recursively for dependencies (brew deps). also check if bottled. if not, --include-build for brew deps
+  # if no (bottled) in brew info <pkg>, run brew deps --include-build (includes build dependencies)
+  echo "BREW DEPS"
+  brew deps $1
+  # call self recursively here?
   if brew ls --versions "$1" >/dev/null; then
     if (brew outdated | grep "$1" >/dev/null); then
       brew upgrade "$1"
@@ -18,17 +20,23 @@ function install_or_upgrade {
     brew install --build-bottle "$@"
     echo "json thingy here"
     brew bottle --json "$@"
+    # TODO: ^ first line in stdout is the bottle file
+    # use instead of file cmd. json file has a similar name
     ls
     echo "json file: `find . -name $1*.json`"
     brew uninstall "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
-    local bottlefile=$(brew --cache "$@" | head -n 1)
+    local bottlefile=$(find . -name $1*.bottle.*.gz)
     echo "brew install this bottlefile: $(bottlefile)"
     brew install $(bottlefile)
     # TODO: find json file properly
     echo "brew bottle --merge --write $(find . -name $1*.json)"
-    brew bottle --merge --write $(find . -name $1*.json)
+    # Add the bottle info into the package's formula
+    brew bottle --merge --write $(find . -name $1*.bottle.json)
     # TODO: save bottle info file (brew --cache libpng)
+    local cachefile=$(brew --cache $1)
+    echo "Copying $(bottlefile) to $(cachefile)..."
+    cp -f $(bottlefile) $(cachefile)
   fi
   set -e
 }
