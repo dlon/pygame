@@ -19,6 +19,7 @@ function install_or_upgrade {
     # call self recursively here?
     # NOTE: dep is recursive by default
 
+    # TODO: need to use the retry function
     brew install --build-bottle "$@"
     echo "json thingy here"
     brew bottle --json "$@"
@@ -26,10 +27,9 @@ function install_or_upgrade {
     # use instead of file cmd. json file has a similar name
     ls
     echo "json file: `find . -name $1*.json`"
-    brew uninstall "$@"
+    brew uninstall --ignore-dependencies "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
-    local bottlefile=$(find . -name $1*.bottle.*.gz)
-    echo "brew install this bottlefile: $(bottlefile)"
+    local bottlefile=$(find . -name $1*.tar.gz)
     echo "brew install this bottlefile: $bottlefile"
     brew install "$bottlefile"
     # TODO: find json file properly
@@ -38,7 +38,7 @@ function install_or_upgrade {
     brew bottle --merge --write $(find . -name $1*.bottle.json)
     # TODO: save bottle info file (brew --cache libpng)
     local cachefile=$(brew --cache $1)
-    echo "Copying $(bottlefile) to $(cachefile)..."
+    echo "Copying $bottlefile to $cachefile..."
     cp -f "$bottlefile" "$cachefile"
   fi
   set -e
