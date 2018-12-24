@@ -52,7 +52,7 @@ function install_or_upgrade {
     brew bottle --json "$@"
     # TODO: ^ first line in stdout is the bottle file
     # use instead of file cmd. json file has a similar name. | head -n 1 should work but fails?
-    ls -l
+    #ls -l
     local jsonfile=$(find . -name $1*.bottle.json)
     echo "json file: $jsonfile"
     brew uninstall --ignore-dependencies "$@"
@@ -69,23 +69,23 @@ function install_or_upgrade {
     local cachefile=$(brew --cache $1)
     echo "Copying $bottlefile to $cachefile..."
     cp -f "$bottlefile" "$cachefile"
+    # FIXME: not sure whether copying is necessary here
 
     # save cache file
     # THIS is probably wrong?
-    echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
-    mkdir -p "$HOME/HomebrewLocal/bottles"
-    cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
+    #echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
+    #mkdir -p "$HOME/HomebrewLocal/bottles"
+    #cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
 
     # save bottle info
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
     mkdir -p "$HOME/HomebrewLocal/json"
     cp -f "$jsonfile" "$HOME/HomebrewLocal/json/"
 
-    echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1"
+    echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1..."
     mkdir -p "$HOME/HomebrewLocal/path"
     echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
-    echo "RESULT (cat):"
-    cat $HOME/HomebrewLocal/path/$1
+    echo "Result: $(cat $HOME/HomebrewLocal/path/$1)."
   fi
   set -e
 }
