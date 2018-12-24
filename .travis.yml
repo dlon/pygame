@@ -1,8 +1,5 @@
 language: python
 
-before_cache:
-  - brew cleanup
-
 cache:
   directories:
     - $HOME/.cache/pip
