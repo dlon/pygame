@@ -3,6 +3,23 @@
 brew update
 brew uninstall --force --ignore-dependencies libpng
 
+function retry {
+  local n=1
+  local max=5
+  local delay=2
+  while true; do
+    "$@" && break || {
+      if [[ $n -lt $max ]]; then
+        ((n++))
+        echo "Command failed. Attempt $n/$max:"
+        sleep $delay;
+      else
+        fail "The command has failed after $n attempts."
+      fi
+    }
+  done
+}
+
 function install_or_upgrade {
   # FIXME: recursion will screw up "set +e"? or is it scoped?
   local deps=""
@@ -27,28 +44,24 @@ function install_or_upgrade {
       echo "$1 is installed but outdated."
       if (brew info "$1" | grep "(bottled)" >/dev/null); then
         echo "$1: Found bottle."
-        brew upgrade "$1"
-        set -e
+        retry brew upgrade "$1"
         return 0
       fi
     else
       echo "$1 is not installed."
       if (brew info "$1" | grep "(bottled)" >/dev/null); then
         echo "$1: Found bottle."
-        brew install "$1"
-        set -e
+        retry brew install "$1"
         return 0
       fi
     fi
 
     echo "$1: Found no bottle. Let's build one."
 
-    # TODO: need to use the retry function
-    brew install --build-bottle "$@"
+    retry brew install --build-bottle "$@"
     brew bottle --json "$@"
     # TODO: ^ first line in stdout is the bottle file
     # use instead of file cmd. json file has a similar name. | head -n 1 should work but fails?
-    #ls -l
     local jsonfile=$(find . -name $1*.bottle.json)
     echo "json file: $jsonfile"
     brew uninstall --ignore-dependencies "$@"
@@ -56,14 +69,13 @@ function install_or_upgrade {
     local bottlefile=$(find . -name $1*.tar.gz)
     echo "brew install $bottlefile"
     brew install "$bottlefile"
-    # TODO: find json file properly
 
     # Add the bottle info into the package's formula
     echo "brew bottle --merge --write $jsonfile"
     brew bottle --merge --write "$jsonfile"
-    # Path to the cachefile will be updated now?
+    # Path to the cachefile will be updated now
     local cachefile=$(brew --cache $1)
-    echo "Copying $bottlefile to $cachefile..."
+    #echo "Copying $bottlefile to $cachefile..."
     #cp -f "$bottlefile" "$cachefile"
     # FIXME: not sure whether copying is necessary here
 

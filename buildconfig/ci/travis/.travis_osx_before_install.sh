@@ -93,6 +93,8 @@ function install_or_upgrade {
 }
 
 
+set +e
+
 install_or_upgrade sdl ${UNIVERSAL_FLAG}
 install_or_upgrade jpeg ${UNIVERSAL_FLAG}
 install_or_upgrade libpng ${UNIVERSAL_FLAG}
@@ -115,6 +117,8 @@ install_or_upgrade freetype ${UNIVERSAL_FLAG}
 install_or_upgrade sdl_ttf ${UNIVERSAL_FLAG}
 install_or_upgrade sdl_image ${UNIVERSAL_FLAG}
 install_or_upgrade sdl_mixer ${UNIVERSAL_FLAG} --with-flac --with-fluid-synth --with-libmikmod --with-libvorbis --with-smpeg
+
+set -e
 
 # brew install https://gist.githubusercontent.com/illume/08f9d3ca872dc2b61d80f665602233fd/raw/0fbfd6657da24c419d23a6678b5715a18cd6560a/portmidi.rb
 
