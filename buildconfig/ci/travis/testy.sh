@@ -67,6 +67,7 @@ function install_or_upgrade {
 }
 
 function check_local_bottles {
+  echo "checking local bottles"
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
     [ -e "$jsonfile" ] || continue
     echo "Time to parse $jsonfile."
@@ -81,6 +82,7 @@ function check_local_bottles {
     brew info --json=v1 $(brew --cache $pkg)
     # does this work if we don't uninstall it?
   done
+  echo "done checking local bottles"
 }
 
 #libpng--1.6.36.el_capitan.bottle.1.tar.gz
@@ -88,6 +90,8 @@ function check_local_bottles {
 # match file with json?
 
 check_local_bottles
+
+# TODO: if using brew cleanup, restore cache files
 
 install_or_upgrade libpng
 echo "running brew bottle"
