@@ -16,6 +16,9 @@ brew update
 echo -en 'travis_fold:end:brew.update\\r'
 export HOMEBREW_NO_AUTO_UPDATE=1
 
+brew install ccache
+export PATH="/usr/local/opt/ccache/libexec:$PATH"
+
 brew uninstall --force --ignore-dependencies pkg-config
 brew install pkg-config
 
@@ -29,6 +32,7 @@ fi
 
 # Only compile from source if doing a release. on tag or master.
 # This saves compile times for normal PR testing.
+ccache -s
 echo "About to install dependencies"
 echo $TRAVIS_TAG
 echo $TRAVIS_BRANCH
@@ -153,6 +157,14 @@ function install_or_upgrade {
   fi
 }
 
+function prevent_stall {
+    while kill -0 "$!" 2> /dev/null
+    do
+        sleep 20
+        echo "Waiting..."
+    done
+}
+
 function check_local_bottles {
   echo "Checking local bottles in $HOME/HomebrewLocal/json/..."
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
@@ -191,6 +203,7 @@ install_or_upgrade webp ${UNIVERSAL_FLAG}
 install_or_upgrade libogg ${UNIVERSAL_FLAG}
 install_or_upgrade libvorbis ${UNIVERSAL_FLAG}
 install_or_upgrade flac ${UNIVERSAL_FLAG}
+brew upgrade boost & prevent_stall
 install_or_upgrade fluid-synth
 install_or_upgrade libmikmod ${UNIVERSAL_FLAG}
 install_or_upgrade smpeg
