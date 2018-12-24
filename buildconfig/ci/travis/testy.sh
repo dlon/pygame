@@ -9,14 +9,16 @@ function install_or_upgrade {
   # FIXME: recursion will fuck up "set +e"? or is it scoped?
   # if no (bottled) in brew info <pkg>, run brew deps --include-build (includes build dependencies)
   # NOTE: deps is recursive by default
-  echo "brew info $1"
-  brew info "$1"
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
-    echo "BREW DEPS $1"
+    echo "BREW DEPS $1 (bottled)"
     brew deps "$1"
+    # TODO: call install or upgrade for each dependency here?
+    # FIXME: why does it return nothing!?
   else
-    echo "BREW DEPS $1 -- include-build"
+    echo "BREW DEPS $1 -- include-build (not bottled)"
     brew deps --include-build "$1"
+    # TODO: call install or upgrade for each dependency here?
+    # FIXME: why does it return nothing!?
   fi
 
   # if a bottle is available, brew install or brew upgrade
@@ -73,7 +75,6 @@ function install_or_upgrade {
     echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
     mkdir -p "$HOME/HomebrewLocal/bottles"
     cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
-    # might have to do this in case it's uninstalled?
 
     # save bottle info
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
@@ -97,7 +98,7 @@ function check_local_bottles {
     # TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
     # TODO: check json and bottles here
     local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
-    echo "package: $pkg"
+    echo "Package: $pkg"
 
     echo "brew info --json=v1 $pkg"
     brew info --json=v1 "$pkg"
@@ -105,7 +106,7 @@ function check_local_bottles {
     echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
     local filefull=$(cat $HOME/HomebrewLocal/path/$pkg)
     local file=$(basename $filefull)
-    echo "result: $file. full path: $filefull"
+    echo "Result: $filefull"
 
     # TODO: check local bottle the same way. but how to find it?
     #echo "brew info --json=v1 $(brew --cache $pkg)"
@@ -140,8 +141,9 @@ function check_local_bottles {
 
     # TODO: remove test below
     echo "brew cache post json merge test"
+    # TODO: confirm that this value changed
     brew --cache "$pkg"
-    if [[ -e $(brew --cache "$pkg") ]]; o
+    if [[ -e $(brew --cache "$pkg") ]]; then
       echo "Does exist."
     else
       echo "Does not exist."
