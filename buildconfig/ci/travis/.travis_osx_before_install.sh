@@ -192,6 +192,11 @@ function check_local_bottles {
 
 check_local_bottles
 
+if [ "${1}" == "--no-installs" ]; then
+  unset HOMEBREW_BUILD_BOTTLE
+  unset HOMEBREW_BOTTLE_ARCH
+  return 0
+fi
 
 set +e
 
