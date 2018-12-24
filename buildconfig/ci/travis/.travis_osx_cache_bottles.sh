@@ -9,4 +9,5 @@ install_or_upgrade boost & prevent_stall
 install_or_upgrade openssl
 install_or_upgrade python@2
 install_or_upgrade glib
+install_or_upgrade cmake
 set -e
