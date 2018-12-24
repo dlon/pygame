@@ -82,7 +82,7 @@ function install_or_upgrade {
 
     echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1"
     mkdir -p "$HOME/HomebrewLocal/path"
-    #echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
+    echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
     echo "RESULT (cat):"
     cat $HOME/HomebrewLocal/path/$1
   fi
@@ -113,6 +113,7 @@ function check_local_bottles {
     echo "brew info --json=v1 $HOME/HomebrewLocal/bottles/$file"
     brew info --json=v1 "$HOME/HomebrewLocal/bottles/$file"
     # does not work? should it be the json file!?
+    # FIXME: this extra copy may not be necessary as long as it points to the bottle, not the source
 
     #TODO: check brew --cache
     # only works if local bottle is right version? unsure
@@ -130,7 +131,9 @@ function check_local_bottles {
     #local file=$(cat $HOME/HomebrewLocal/path/$pkg)
     #echo "result: $file"
 
-    cp -f $file $filefull
+    echo "Copying $HOME/HomebrewLocal/bottles/$file to $filefull"
+    echo "FIXME: I don't know if this is necessary."
+    cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
     # Add the bottle into the package's formula
     brew bottle --merge --write "$jsonfile"
   done
