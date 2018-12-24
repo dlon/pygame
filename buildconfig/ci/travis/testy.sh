@@ -59,20 +59,20 @@ function install_or_upgrade {
     echo "brew install this bottlefile: $bottlefile"
     brew install "$bottlefile"
     # TODO: find json file properly
-    echo "brew bottle --merge --write $jsonfile"
-    # Add the bottle info into the package's formula
-    brew bottle --merge --write "$jsonfile"
 
-    echo "Path to the cachefile will be updated now?"
+    # Add the bottle info into the package's formula
+    echo "brew bottle --merge --write $jsonfile"
+    brew bottle --merge --write "$jsonfile"
+    # Path to the cachefile will be updated now?
     local cachefile=$(brew --cache $1)
     echo "Copying $bottlefile to $cachefile..."
     cp -f "$bottlefile" "$cachefile"
 
     # save cache file
     # THIS is probably wrong?
-    echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
-    mkdir -p "$HOME/HomebrewLocal/bottles"
-    cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
+    #echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
+    #mkdir -p "$HOME/HomebrewLocal/bottles"
+    #cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
     # should use cache path to save it in my own location?
 
     # save bottle info
@@ -83,6 +83,8 @@ function install_or_upgrade {
     echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1"
     mkdir -p "$HOME/HomebrewLocal/path"
     echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
+    echo "RESULT (cat):"
+    cat $HOME/HomebrewLocal/path/$1
   fi
   set -e
 }
@@ -98,26 +100,33 @@ function check_local_bottles {
     echo "package: $pkg"
     echo "brew info --json=v1 $pkg"
     brew info --json=v1 "$pkg"
+
+    echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
+    local file=$(cat $HOME/HomebrewLocal/path/$pkg)
+    echo "result: $file"
+
     # TODO: check local bottle the same way. but how to find it?
-    echo "brew info --json=v1 $(brew --cache $pkg)"
-    brew info --json=v1 $(brew --cache $pkg)
+    #echo "brew info --json=v1 $(brew --cache $pkg)"
+    #brew info --json=v1 $(brew --cache $pkg)
+    echo "brew info --json=v1 $file"
+    brew info --json=v1 $file
     # does this work if we don't uninstall it?
-    
+
     #TODO: check brew --cache
     # only works if local bottle is right version? unsure
     # I think this only works after re-adding
     # NO: after adding json info to the formula, this should point to our old cached file
     echo "brew cache test"
-    brew --cache "$jsonfile"
-    
+    brew --cache "$pkg"
+
     # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
     # if it does, re-add bottle info to formula like above
     # if it doesn't, delete cached bottle & json
     #    we should have the path stored to the cache. brew --cache won't work here
     #    TODO: read from path/pkg
-    echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
-    local file=$(cat $HOME/HomebrewLocal/path/$pkg)
-    echo "result: $file"
+    #echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
+    #local file=$(cat $HOME/HomebrewLocal/path/$pkg)
+    #echo "result: $file"
   done
   echo "done checking local bottles"
 }
