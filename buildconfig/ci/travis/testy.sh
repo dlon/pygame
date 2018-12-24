@@ -21,7 +21,7 @@ function install_or_upgrade {
     done
   fi
 
-  if (brew ls --versions "$1" >/dev/null) && (brew outdated | grep "$1" >/dev/null); then
+  if (brew ls --versions "$1" >/dev/null) && !(brew outdated | grep "$1" >/dev/null); then
     echo "$1 is already installed and up to date."
   else
     if (brew outdated | grep "$1" >/dev/null); then
