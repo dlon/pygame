@@ -70,10 +70,10 @@ function install_or_upgrade {
 
     # save cache file
     # THIS is probably wrong?
-    #echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
-    #mkdir -p "$HOME/HomebrewLocal/bottles"
-    #cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
-    # should use cache path to save it in my own location?
+    echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
+    mkdir -p "$HOME/HomebrewLocal/bottles"
+    cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
+    # might have to do this in case it's uninstalled?
 
     # save bottle info
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
@@ -82,7 +82,7 @@ function install_or_upgrade {
 
     echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1"
     mkdir -p "$HOME/HomebrewLocal/path"
-    echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
+    #echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
     echo "RESULT (cat):"
     cat $HOME/HomebrewLocal/path/$1
   fi
@@ -98,19 +98,20 @@ function check_local_bottles {
     # TODO: check json and bottles here
     local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
     echo "package: $pkg"
+
     echo "brew info --json=v1 $pkg"
     brew info --json=v1 "$pkg"
 
     echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
-    local file=$(cat $HOME/HomebrewLocal/path/$pkg)
+    local file=$(basename $(cat $HOME/HomebrewLocal/path/$pkg))
     echo "result: $file"
 
     # TODO: check local bottle the same way. but how to find it?
     #echo "brew info --json=v1 $(brew --cache $pkg)"
     #brew info --json=v1 $(brew --cache $pkg)
-    echo "brew info --json=v1 $file"
-    brew info --json=v1 $file
-    # does this work if we don't uninstall it?
+    echo "brew info --json=v1 $HOME/HomebrewLocal/bottles/$file"
+    brew info --json=v1 "$HOME/HomebrewLocal/bottles/$file"
+    # does not work? should it be the json file!?
 
     #TODO: check brew --cache
     # only works if local bottle is right version? unsure
