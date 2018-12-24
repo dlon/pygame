@@ -55,13 +55,13 @@ function install_or_upgrade {
 
     echo "Copying $bottlefile to $HOME/HomebrewLocal/bottles..."
     mkdir -p "$HOME/HomebrewLocal/bottles"
-    cp -f "$bottlefile" "$$HOME/HomebrewLocal/bottles"
+    cp -f "$bottlefile" "$HOME/HomebrewLocal/bottles/"
     # ^probably wrong. the former will be found?
 
     # save bottle info file
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
     mkdir -p "$HOME/HomebrewLocal/json"
-    cp -f "$jsonfile" "$HOME/HomebrewLocal/json"
+    cp -f "$jsonfile" "$HOME/HomebrewLocal/json/"
   fi
   set -e
 }
