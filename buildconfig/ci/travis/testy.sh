@@ -12,12 +12,12 @@ function install_or_upgrade {
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
     echo "BREW DEPS $1 (bottled)"
     brew deps "$1"
-    # TODO: call install or upgrade for each dependency here?
+    # TODO: call install or upgrade for each dependency here? only check immediate dependencies
     # FIXME: why does it return nothing!?
   else
     echo "BREW DEPS $1 -- include-build (not bottled)"
     brew deps --include-build "$1"
-    # TODO: call install or upgrade for each dependency here?
+    # TODO: call install or upgrade for each dependency here? only check immediate dependencies
     # FIXME: why does it return nothing!?
   fi
 
@@ -100,19 +100,17 @@ function check_local_bottles {
     local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
     echo "Package: $pkg"
 
-    echo "brew info --json=v1 $pkg"
-    brew info --json=v1 "$pkg"
-
-    echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
     local filefull=$(cat $HOME/HomebrewLocal/path/$pkg)
     local file=$(basename $filefull)
-    echo "Result: $filefull"
+    echo "$pkg: local bottle path: $filefull"
 
-    # TODO: check local bottle the same way. but how to find it?
+    # TODO: compare local bottle version w/ up-to-date version
+    echo "brew info --json=v1 $pkg"
+    brew info --json=v1 "$pkg"
     #echo "brew info --json=v1 $(brew --cache $pkg)"
     #brew info --json=v1 $(brew --cache $pkg)
-    echo "brew info --json=v1 $HOME/HomebrewLocal/bottles/$file"
-    brew info --json=v1 "$HOME/HomebrewLocal/bottles/$file"
+    echo "brew info --json=v1 $filefull"
+    brew info --json=v1 "$filefull"
     # does not work? should it be the json file!?
     # FIXME: this extra copy may not be necessary as long as it points to the bottle, not the source
 
@@ -120,34 +118,22 @@ function check_local_bottles {
     # only works if local bottle is right version? unsure
     # I think this only works after re-adding
     # NO: after adding json info to the formula, this should point to our old cached file
-    echo "brew cache test"
-    brew --cache "$pkg"
+    #echo "brew cache test"
+    #brew --cache "$pkg"
 
     # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
     # if it does, re-add bottle info to formula like below
     # if it doesn't, delete cached bottle & json
-    #    using $filefull
-
-    #echo "Copying $HOME/HomebrewLocal/bottles/$file to $filefull"
-    #echo "FIXME: I don't know if this is necessary."
-    #cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
-    # TODO: try removing this. but keep backups temporarily for brew cleanup
-    #       so perhaps cp ...; rm -rf "$HOME/HomebrewLocal/bottles/" after brew cleanup
+    #    ie rm -f $filefull
 
     # Add the bottle into the package's formula
-    echo "Adding local bottle for $1 to the package's formula."
+    # This might be good enough for now?
+    echo "Adding local bottle for $pkg to the package's formula."
     brew bottle --merge --write "$jsonfile"
-    # ^ this might be good enough for now?
 
-    # TODO: remove test below
-    echo "brew cache post json merge test"
-    # TODO: confirm that this value changed
-    brew --cache "$pkg"
-    if [[ -e $(brew --cache "$pkg") ]]; then
-      echo "Does exist."
-    else
-      echo "Does not exist."
-    fi
+    #echo "brew cache test"
+    #brew --cache "$pkg"
+    #TODO: remove. confirmed to be updated & file exists
   done
   echo "done checking local bottles"
 }
@@ -163,3 +149,8 @@ check_local_bottles
 install_or_upgrade libpng
 echo "running brew bottle"
 brew bottle
+
+#cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
+# TODO: brew cleanup (in before_cache):
+#   backup ALL bottles (including ones not just created) to the folder
+#   cp ...; brew cleanup; rm -rf "$HOME/HomebrewLocal/bottles/"
