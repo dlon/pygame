@@ -4,28 +4,20 @@ brew update
 brew uninstall --force --ignore-dependencies libpng
 
 function install_or_upgrade {
-  set +e
-  # FIXME: recursion will fuck up "set +e"? or is it scoped?
+  # FIXME: recursion will screw up "set +e"? or is it scoped?
+  local deps=""
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
-    local deps=$(brew deps "$1")
-    if [[ "$deps" ]]; then
-        echo -n "$1 dependencies: "
-        echo $deps
-        while read -r dependency; do
-          echo "$1: Install dependency $dependency."
-          install_or_upgrade "$dependency"
-        done <<< "$deps"
-    fi
+    deps=$(brew deps "$1")
   else
-    local deps=$(brew deps --include-build "$1")
-    if [[ "$deps" ]]; then
-        echo -n "$1 dependencies: "
-        echo $deps
-        while read -r dependency; do
-          echo "$1: Install dependency $dependency."
-          install_or_upgrade "$dependency"
-        done <<< "$deps"
-    fi
+    deps=$(brew deps --include-build "$1")
+  fi
+  if [[ "$deps" ]]; then
+    echo -n "$1 dependencies: "
+    echo $deps
+    while read -r dependency; do
+      echo "$1: Install dependency $dependency."
+      install_or_upgrade "$dependency"
+    done <<< "$deps"
   fi
 
   if (brew ls --versions "$1" >/dev/null) && ! (brew outdated | grep "$1" >/dev/null); then
@@ -72,7 +64,7 @@ function install_or_upgrade {
     # Path to the cachefile will be updated now?
     local cachefile=$(brew --cache $1)
     echo "Copying $bottlefile to $cachefile..."
-    cp -f "$bottlefile" "$cachefile"
+    #cp -f "$bottlefile" "$cachefile"
     # FIXME: not sure whether copying is necessary here
 
     # save cache file
@@ -91,11 +83,10 @@ function install_or_upgrade {
     echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
     echo "Result: $(cat $HOME/HomebrewLocal/path/$1)."
   fi
-  set -e
 }
 
 function check_local_bottles {
-  echo "checking local bottles in $HOME/HomebrewLocal/json/"
+  echo "Checking local bottles in $HOME/HomebrewLocal/json/..."
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
     [ -e "$jsonfile" ] || continue
     local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
@@ -135,17 +126,18 @@ function check_local_bottles {
     # FIXME: this fails even though the file exists? may work after mergng w/ json,
     #  but that seems wrong.
   done
-  echo "done checking local bottles"
+  echo "Done checking local bottles."
 }
 
 check_local_bottles
 
-#install_or_upgrade libpng
-install_or_upgrade fluid-synth
-echo "running brew bottle"
-brew bottle
+set +e
+install_or_upgrade libpng
+#install_or_upgrade fluid-synth
+set -e
 
 #cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
 # TODO: brew cleanup (in before_cache):
-#   backup ALL bottles (not just ones just created) to the folder
-#   cp ...; brew cleanup; rm -rf "$HOME/HomebrewLocal/bottles/"
+#   first backup ALL bottles (not just ones just created) to the dir
+#     "$HOME/HomebrewLocal/bottles/" (hard links?)
+#   then brew cleanup && restore deleted; rm -rf "$HOME/HomebrewLocal/bottles/"
