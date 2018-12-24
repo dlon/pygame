@@ -6,14 +6,11 @@ brew uninstall --force --ignore-dependencies libpng
 function install_or_upgrade {
   set +e
   # FIXME: recursion will fuck up "set +e"? or is it scoped?
-  # if no (bottled) in brew info <pkg>, run brew deps --include-build (includes build dependencies)
-  # NOTE: deps is recursive by default
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
     brew deps "$1" | while read -r dependency; do
       echo "$1: Install dependency $dependency."
       install_or_upgrade "$dependency"
     done
-    #brew deps "$1" | xargs -L1 install_or_upgrade
   else
     brew deps --include-build "$1" | while read -r dependency; do
       echo "$1: Install dependency $dependency."
@@ -21,7 +18,7 @@ function install_or_upgrade {
     done
   fi
 
-  if (brew ls --versions "$1" >/dev/null) && !(brew outdated | grep "$1" >/dev/null); then
+  if (brew ls --versions "$1" >/dev/null) && ! (brew outdated | grep "$1" >/dev/null); then
     echo "$1 is already installed and up to date."
   else
     if (brew outdated | grep "$1" >/dev/null); then
