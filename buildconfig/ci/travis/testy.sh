@@ -10,18 +10,18 @@ function install_or_upgrade {
     local deps=$(brew deps "$1")
     echo -n "$1 dependencies: "
     echo $deps
-    "$deps" | while read -r dependency; do
+    while read -r dependency; do
       echo "$1: Install dependency $dependency."
       install_or_upgrade "$dependency"
-    done
+    done <<< "$deps"
   else
     local deps=$(brew deps --include-build "$1")
     echo -n "$1 dependencies: "
     echo $deps
-    "$deps" | while read -r dependency; do
+    while read -r dependency; do
       echo "$1: Install dependency $dependency."
       install_or_upgrade "$dependency"
-    done
+    done <<< "$deps"
   fi
 
   if (brew ls --versions "$1" >/dev/null) && ! (brew outdated | grep "$1" >/dev/null); then
@@ -49,7 +49,6 @@ function install_or_upgrade {
 
     # TODO: need to use the retry function
     brew install --build-bottle "$@"
-    echo "json thingy here"
     brew bottle --json "$@"
     # TODO: ^ first line in stdout is the bottle file
     # use instead of file cmd. json file has a similar name. | head -n 1 should work but fails?
@@ -59,7 +58,7 @@ function install_or_upgrade {
     brew uninstall --ignore-dependencies "$@"
     # TODO: bottle name, json file (from "brew bottle" smoehow)
     local bottlefile=$(find . -name $1*.tar.gz)
-    echo "brew install this bottlefile: $bottlefile"
+    echo "brew install $bottlefile"
     brew install "$bottlefile"
     # TODO: find json file properly
 
