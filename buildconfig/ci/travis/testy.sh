@@ -115,7 +115,7 @@ function check_local_bottles {
     # does not work? should it be the json file!?
     # FIXME: this extra copy may not be necessary as long as it points to the bottle, not the source
 
-    #TODO: check brew --cache
+    # TODO: remove test below
     # only works if local bottle is right version? unsure
     # I think this only works after re-adding
     # NO: after adding json info to the formula, this should point to our old cached file
@@ -123,19 +123,29 @@ function check_local_bottles {
     brew --cache "$pkg"
 
     # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
-    # if it does, re-add bottle info to formula like above
+    # if it does, re-add bottle info to formula like below
     # if it doesn't, delete cached bottle & json
-    #    we should have the path stored to the cache. brew --cache won't work here
-    #    TODO: read from path/pkg
-    #echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
-    #local file=$(cat $HOME/HomebrewLocal/path/$pkg)
-    #echo "result: $file"
+    #    using $filefull
 
-    echo "Copying $HOME/HomebrewLocal/bottles/$file to $filefull"
-    echo "FIXME: I don't know if this is necessary."
-    cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
+    #echo "Copying $HOME/HomebrewLocal/bottles/$file to $filefull"
+    #echo "FIXME: I don't know if this is necessary."
+    #cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
+    # TODO: try removing this. but keep backups temporarily for brew cleanup
+    #       so perhaps cp ...; rm -rf "$HOME/HomebrewLocal/bottles/" after brew cleanup
+
     # Add the bottle into the package's formula
+    echo "Adding local bottle for $1 to the package's formula."
     brew bottle --merge --write "$jsonfile"
+    # ^ this might be good enough for now?
+
+    # TODO: remove test below
+    echo "brew cache post json merge test"
+    brew --cache "$pkg"
+    if [[ -e $(brew --cache "$pkg") ]]; o
+      echo "Does exist."
+    else
+      echo "Does not exist."
+    fi
   done
   echo "done checking local bottles"
 }
