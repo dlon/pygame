@@ -83,14 +83,100 @@ function retry {
 }
 
 function install_or_upgrade {
-	set +e
-    if brew ls --versions "$1" >/dev/null; then
-        echo "package already installed: $@"
+  local deps=""
+  if (brew info "$1" | grep "(bottled)" >/dev/null); then
+    deps=$(brew deps "$1")
+  else
+    deps=$(brew deps --include-build "$1")
+  fi
+  if [[ "$deps" ]]; then
+    echo -n "$1 dependencies: "
+    echo $deps
+    while read -r dependency; do
+      echo "$1: Install dependency $dependency."
+      install_or_upgrade "$dependency"
+    done <<< "$deps"
+  fi
+
+  if (brew ls --versions "$1" >/dev/null) && ! (brew outdated | grep "$1" >/dev/null); then
+    echo "$1 is already installed and up to date."
+  else
+    if (brew outdated | grep "$1" >/dev/null); then
+      echo "$1 is installed but outdated."
+      if (brew info "$1" | grep "(bottled)" >/dev/null); then
+        echo "$1: Found bottle."
+        retry brew upgrade "$1"
+        return 0
+      fi
     else
-    	retry brew install "$@"
+      echo "$1 is not installed."
+      if (brew info "$1" | grep "(bottled)" >/dev/null); then
+        echo "$1: Found bottle."
+        retry brew install "$1"
+        return 0
+      fi
     fi
-    set -e
+
+    echo "$1: Found no bottle. Let's build one."
+
+    retry brew install --build-bottle "$@"
+    brew bottle --json "$@"
+    # TODO: ^ first line in stdout is the bottle file
+    # use instead of file cmd. json file has a similar name. "| head -n 1"?
+    local jsonfile=$(find . -name $1*.bottle.json)
+    brew uninstall --ignore-dependencies "$@"
+
+    local bottlefile=$(find . -name $1*.tar.gz)
+    echo "brew install $bottlefile"
+    brew install "$bottlefile"
+
+    # Add the bottle info into the package's formula
+    echo "brew bottle --merge --write $jsonfile"
+    brew bottle --merge --write "$jsonfile"
+
+    # Path to the cachefile will be updated now
+    local cachefile=$(brew --cache $1)
+    echo "Copying $bottlefile to $cachefile..."
+    cp -f "$bottlefile" "$cachefile"
+
+    # save bottle info
+    echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
+    mkdir -p "$HOME/HomebrewLocal/json"
+    cp -f "$jsonfile" "$HOME/HomebrewLocal/json/"
+
+    echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1..."
+    mkdir -p "$HOME/HomebrewLocal/path"
+    echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
+    echo "Result: $(cat $HOME/HomebrewLocal/path/$1)."
+  fi
 }
+
+function check_local_bottles {
+  echo "Checking local bottles in $HOME/HomebrewLocal/json/..."
+  for jsonfile in $HOME/HomebrewLocal/json/*.json; do
+    [ -e "$jsonfile" ] || continue
+    local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
+    echo "Package: $pkg. JSON: $jsonfile."
+
+    local filefull=$(cat $HOME/HomebrewLocal/path/$pkg)
+    local file=$(basename $filefull)
+    echo "$pkg: local bottle path: $filefull"
+
+    # This might be good enough for now?
+    echo "Adding local bottle into $pkg's formula."
+    brew bottle --merge --write "$jsonfile"
+
+    # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
+    # if it does, re-add bottle info to formula like above
+    # if it doesn't, delete cached bottle & json
+    #    ie rm -f $filefull
+    #brew info --json=v1 "$pkg"
+    #brew info --json=v1 "$filefull"
+  done
+  echo "Done checking local bottles."
+}
+
+check_local_bottles
 
 
 set +e

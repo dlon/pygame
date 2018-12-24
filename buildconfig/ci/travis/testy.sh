@@ -73,11 +73,11 @@ function install_or_upgrade {
     # Add the bottle info into the package's formula
     echo "brew bottle --merge --write $jsonfile"
     brew bottle --merge --write "$jsonfile"
+
     # Path to the cachefile will be updated now
     local cachefile=$(brew --cache $1)
-    #echo "Copying $bottlefile to $cachefile..."
-    #cp -f "$bottlefile" "$cachefile"
-    # FIXME: not sure whether copying is necessary here
+    echo "Copying $bottlefile to $cachefile..."
+    cp -f "$bottlefile" "$cachefile"
 
     # save cache file
     # THIS is probably wrong?
