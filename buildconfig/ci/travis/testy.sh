@@ -6,33 +6,50 @@ brew uninstall --force --ignore-dependencies libpng
 function install_or_upgrade {
   set +e
   # TODO: recursively for dependencies (brew deps)
+  # FIXME: recursion will fuck up "set +e"? or is it scoped?
   # if no (bottled) in brew info <pkg>, run brew deps --include-build (includes build dependencies)
-  if brew ls --versions "$1" >/dev/null; then
-    if (brew outdated | grep "$1" >/dev/null); then
-      brew upgrade "$1"
-    else
-      echo "latest version is installed"
-    fi
+  # NOTE: deps is recursive by default
+  echo "brew info $1"
+  brew info "$1"
+  if (brew info "$1" | grep "(bottled)" >/dev/null); then
+    echo "BREW DEPS $1"
+    brew deps "$1"
   else
-    echo "brew info $1"
-    brew info "$1"
-    if (brew info "$1" | grep "(bottled)" >/dev/null); then
-      echo "BREW DEPS $1"
-      brew deps "$1"
+    echo "BREW DEPS $1 -- include-build"
+    brew deps --include-build "$1"
+  fi
+
+  # if a bottle is available, brew install or brew upgrade
+
+  if (brew ls --versions "$1" >/dev/null) && (brew outdated | grep "$1" >/dev/null); then
+    echo "$1 is already installed and up to date."
+  else
+    if (brew outdated | grep "$1" >/dev/null); then
+      echo "$1 is installed but outdated."
+      if (brew info "$1" | grep "(bottled)" >/dev/null); then
+        echo "$1: Found bottle."
+        brew upgrade "$1"
+        set -e
+        return 0
+      fi
     else
-      echo "BREW DEPS $1 -- include-build"
-      brew deps --include-build "$1"
+      echo "$1 is not installed."
+      if (brew info "$1" | grep "(bottled)" >/dev/null); then
+        echo "$1: Found bottle."
+        brew install "$1"
+        set -e
+        return 0
+      fi
     fi
-    # why does it return nothing!?
-    # call self recursively here?
-    # NOTE: dep is recursive by default
+
+    echo "$1: Found no bottle. Let's build one."
 
     # TODO: need to use the retry function
     brew install --build-bottle "$@"
     echo "json thingy here"
     brew bottle --json "$@"
     # TODO: ^ first line in stdout is the bottle file
-    # use instead of file cmd. json file has a similar name
+    # use instead of file cmd. json file has a similar name. | head -n 1 should work but fails?
     ls -l
     local jsonfile=$(find . -name $1*.bottle.json)
     echo "json file: $jsonfile"
@@ -45,20 +62,19 @@ function install_or_upgrade {
     echo "brew bottle --merge --write $jsonfile"
     # Add the bottle info into the package's formula
     brew bottle --merge --write "$jsonfile"
-    echo "there should be a new bottle here now? same name?"
-    # TODO: verify
-    ls -l
 
+    echo "Path to the cachefile will be updated now?"
     local cachefile=$(brew --cache $1)
-    echo "Copying $bottlefile to $cachefile..."
-    cp -f "$bottlefile" "$cachefile"
+    #echo "Copying $bottlefile to $cachefile..."
+    #cp -f "$bottlefile" "$cachefile"
 
-    echo "Copying $bottlefile to $HOME/HomebrewLocal/bottles..."
+    # save cache file
+    echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
     mkdir -p "$HOME/HomebrewLocal/bottles"
-    cp -f "$bottlefile" "$HOME/HomebrewLocal/bottles/"
-    # ^probably wrong. the former will be found?
+    cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
+    # should use cache path to save it in my own location?
 
-    # save bottle info file
+    # save bottle info
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
     mkdir -p "$HOME/HomebrewLocal/json"
     cp -f "$jsonfile" "$HOME/HomebrewLocal/json/"
@@ -67,7 +83,7 @@ function install_or_upgrade {
 }
 
 function check_local_bottles {
-  echo "checking local bottles"
+  echo "checking local bottles in $HOME/HomebrewLocal/json/"
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
     [ -e "$jsonfile" ] || continue
     echo "Time to parse $jsonfile."
