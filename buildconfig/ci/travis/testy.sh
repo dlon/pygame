@@ -94,7 +94,7 @@ function check_local_bottles {
     echo "Time to parse $jsonfile."
     # TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
     # TODO: check json and bottles here
-    local pkg="$(cut -d'-' -f1 <<<"$jsonfile")"
+    local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
     echo "package: $pkg"
     echo "brew info --json=v1 $pkg"
     brew info --json=v1 "$pkg"
