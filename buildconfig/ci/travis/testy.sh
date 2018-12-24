@@ -65,10 +65,11 @@ function install_or_upgrade {
 
     echo "Path to the cachefile will be updated now?"
     local cachefile=$(brew --cache $1)
-    #echo "Copying $bottlefile to $cachefile..."
-    #cp -f "$bottlefile" "$cachefile"
+    echo "Copying $bottlefile to $cachefile..."
+    cp -f "$bottlefile" "$cachefile"
 
     # save cache file
+    # THIS is probably wrong?
     echo "Copying $cachefile to $HOME/HomebrewLocal/bottles..."
     mkdir -p "$HOME/HomebrewLocal/bottles"
     cp -f "$cachefile" "$HOME/HomebrewLocal/bottles/"
@@ -78,6 +79,10 @@ function install_or_upgrade {
     echo "Copying $jsonfile to $HOME/HomebrewLocal/json..."
     mkdir -p "$HOME/HomebrewLocal/json"
     cp -f "$jsonfile" "$HOME/HomebrewLocal/json/"
+
+    echo "Saving bottle path to to $HOME/HomebrewLocal/path/$1"
+    mkdir -p "$HOME/HomebrewLocal/path"
+    echo "$cachefile" > "$HOME/HomebrewLocal/path/$1"
   fi
   set -e
 }
@@ -97,6 +102,22 @@ function check_local_bottles {
     echo "brew info --json=v1 $(brew --cache $pkg)"
     brew info --json=v1 $(brew --cache $pkg)
     # does this work if we don't uninstall it?
+    
+    #TODO: check brew --cache
+    # only works if local bottle is right version? unsure
+    # I think this only works after re-adding
+    # NO: after adding json info to the formula, this should point to our old cached file
+    echo "brew cache test"
+    brew --cache "$jsonfile"
+    
+    # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
+    # if it does, re-add bottle info to formula like above
+    # if it doesn't, delete cached bottle & json
+    #    we should have the path stored to the cache. brew --cache won't work here
+    #    TODO: read from path/pkg
+    echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
+    local file=$(cat $HOME/HomebrewLocal/path/$pkg)
+    echo "result: $file"
   done
   echo "done checking local bottles"
 }
