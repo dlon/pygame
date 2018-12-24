@@ -6,4 +6,7 @@ source "buildconfig/ci/travis/.travis_osx_before_install.sh" --no-installs
 
 set +e
 install_or_upgrade boost & prevent_stall
+install_or_upgrade openssl
+install_or_upgrade python@2
+install_or_upgrade glib
 set -e
