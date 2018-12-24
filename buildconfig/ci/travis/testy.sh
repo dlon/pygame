@@ -103,8 +103,9 @@ function check_local_bottles {
     brew info --json=v1 "$pkg"
 
     echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
-    local file=$(basename $(cat $HOME/HomebrewLocal/path/$pkg))
-    echo "result: $file"
+    local filefull=$(cat $HOME/HomebrewLocal/path/$pkg)
+    local file=$(basename $filefull)
+    echo "result: $file. full path: $filefull"
 
     # TODO: check local bottle the same way. but how to find it?
     #echo "brew info --json=v1 $(brew --cache $pkg)"
@@ -128,6 +129,10 @@ function check_local_bottles {
     #echo "Reading bottle path from $HOME/HomebrewLocal/path/$pkg"
     #local file=$(cat $HOME/HomebrewLocal/path/$pkg)
     #echo "result: $file"
+
+    cp -f $file $filefull
+    # Add the bottle into the package's formula
+    brew bottle --merge --write "$jsonfile"
   done
   echo "done checking local bottles"
 }
