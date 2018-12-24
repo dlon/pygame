@@ -7,12 +7,18 @@ function install_or_upgrade {
   set +e
   # FIXME: recursion will fuck up "set +e"? or is it scoped?
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
-    brew deps "$1" | while read -r dependency; do
+    local deps=$(brew deps "$1")
+    echo -n "$1 dependencies: "
+    echo $deps
+    "$deps" | while read -r dependency; do
       echo "$1: Install dependency $dependency."
       install_or_upgrade "$dependency"
     done
   else
-    brew deps --include-build "$1" | while read -r dependency; do
+    local deps=$(brew deps --include-build "$1")
+    echo -n "$1 dependencies: "
+    echo $deps
+    "$deps" | while read -r dependency; do
       echo "$1: Install dependency $dependency."
       install_or_upgrade "$dependency"
     done
