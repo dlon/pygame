@@ -94,25 +94,12 @@ function check_local_bottles {
   echo "checking local bottles in $HOME/HomebrewLocal/json/"
   for jsonfile in $HOME/HomebrewLocal/json/*.json; do
     [ -e "$jsonfile" ] || continue
-    echo "Time to parse $jsonfile."
-    # TODO: at startup, use brew info --json=v1 <bottle> and brew info --json=v1 <pkg>
-    # TODO: check json and bottles here
     local pkg="$(cut -d'-' -f1 <<<"$(basename $jsonfile)")"
-    echo "Package: $pkg"
+    echo "Package: $pkg. JSON: $jsonfile."
 
     local filefull=$(cat $HOME/HomebrewLocal/path/$pkg)
     local file=$(basename $filefull)
     echo "$pkg: local bottle path: $filefull"
-
-    # TODO: compare local bottle version w/ up-to-date version
-    echo "brew info --json=v1 $pkg"
-    brew info --json=v1 "$pkg"
-    #echo "brew info --json=v1 $(brew --cache $pkg)"
-    #brew info --json=v1 $(brew --cache $pkg)
-    echo "brew info --json=v1 $filefull"
-    brew info --json=v1 "$filefull"
-    # does not work? should it be the json file!?
-    # FIXME: this extra copy may not be necessary as long as it points to the bottle, not the source
 
     # TODO: remove test below
     # only works if local bottle is right version? unsure
@@ -121,36 +108,40 @@ function check_local_bottles {
     #echo "brew cache test"
     #brew --cache "$pkg"
 
-    # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
-    # if it does, re-add bottle info to formula like below
-    # if it doesn't, delete cached bottle & json
-    #    ie rm -f $filefull
-
-    # Add the bottle into the package's formula
     # This might be good enough for now?
-    echo "Adding local bottle for $pkg to the package's formula."
+    echo "Adding local bottle into $pkg's formula."
     brew bottle --merge --write "$jsonfile"
 
     #echo "brew cache test"
     #brew --cache "$pkg"
     #TODO: remove. confirmed to be updated & file exists
+
+    # TODO: check if the local bottle is still appropriate (by comparing versions and rebuild numbers)
+    # if it does, re-add bottle info to formula like above
+    # if it doesn't, delete cached bottle & json
+    #    ie rm -f $filefull
+
+    # TODO: compare local bottle version w/ up-to-date version
+    #echo "brew info --json=v1 $pkg"
+    #brew info --json=v1 "$pkg"
+    ##echo "brew info --json=v1 $(brew --cache $pkg)"
+    ##brew info --json=v1 $(brew --cache $pkg)
+    #echo "brew info --json=v1 $filefull"
+    #brew info --json=v1 "$filefull"
+    # FIXME: this fails even though the file exists? may work after mergng w/ json,
+    #  but that seems wrong.
   done
   echo "done checking local bottles"
 }
 
-#libpng--1.6.36.el_capitan.bottle.1.tar.gz
-#libpng--1.6.36.el_capitan.bottle.json
-# match file with json?
-
 check_local_bottles
 
-# TODO: if using brew cleanup, restore cache files
-
-install_or_upgrade libpng
+#install_or_upgrade libpng
+install_or_upgrade fluid-synth
 echo "running brew bottle"
 brew bottle
 
 #cp -f "$HOME/HomebrewLocal/bottles/$file" $filefull
 # TODO: brew cleanup (in before_cache):
-#   backup ALL bottles (including ones not just created) to the folder
+#   backup ALL bottles (not just ones just created) to the folder
 #   cp ...; brew cleanup; rm -rf "$HOME/HomebrewLocal/bottles/"
