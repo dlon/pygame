@@ -8,7 +8,8 @@ set -e
 unset -f cd
 shell_session_update() { :; }
 
-
+# Set this to 1 to automatically upgrade packages with "install_or_upgrade". Otherwise, 0.
+set upgradeOutdated = 0
 
 echo -en 'travis_fold:start:brew.update\\r'
 echo "Updating Homebrew listings..."
@@ -93,8 +94,12 @@ function install_or_upgrade {
   fi
 
   local outdated=$(brew outdated | grep -m 1 "$1")
-  if [[ ! "$outdated" ]] && (brew ls --versions "$1" >/dev/null); then
-    echo "$1 is already installed and up to date."
+  if ([[ "$upgradeOutdated" = "0" ]] || [[ ! "$outdated" ]]) && (brew ls --versions "$1" >/dev/null); then
+    if [[ "$outdated" ]]; then
+      echo "$1 is installed but outdated. Skipping."
+    else
+      echo "$1 is already installed and up to date."
+    fi
     return 0
   fi
 
@@ -118,16 +123,16 @@ function install_or_upgrade {
     echo "$1 is installed but outdated."
     if [[ "$bottled" ]]; then
       echo "$1: Found bottle."
-      retry brew upgrade "$1"
+      retry brew upgrade "$@"
       return 0
     else
-      brew uninstall --ignore-dependencies "$1"
+      brew uninstall --ignore-dependencies "$@"
     fi
   else
     echo "$1 is not installed."
     if [[ "$bottled" ]]; then
       echo "$1: Found bottle."
-      retry brew install "$1"
+      retry brew install "$@"
       return 0
     fi
   fi
@@ -223,7 +228,7 @@ install_or_upgrade smpeg
 
 # Because portmidi hates us... and installs python2, which messes homebrew up.
 # So we install portmidi from our own formula.
-install_or_upgrade cmake # portmidi dependency
+#install_or_upgrade cmake # portmidi dependency
 brew tap pygame/portmidi
 brew install pygame/portmidi/portmidi ${UNIVERSAL_FLAG}
 
