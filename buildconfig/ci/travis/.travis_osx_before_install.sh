@@ -94,9 +94,9 @@ function install_or_upgrade {
 
   local deps=""
   if (brew info "$1" | grep "(bottled)" >/dev/null); then
-    deps=$(brew deps "$1")
+    deps=$(brew deps --1 "$1")
   else
-    deps=$(brew deps --include-build "$1")
+    deps=$(brew deps --1 --include-build "$1")
   fi
   if [[ "$deps" ]]; then
     echo -n "$1 dependencies: "
