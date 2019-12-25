@@ -103,7 +103,7 @@ fi
 
 set +e
 
-brew tap pygame/portmidi
+brew tap dlon/portmidi
 
 check_local_bottles
 
