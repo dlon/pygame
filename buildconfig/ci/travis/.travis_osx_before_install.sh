@@ -103,10 +103,7 @@ fi
 
 set +e
 
-# TODO: tap-pin deprecated. Need `brew install pygame/portmidi/sdl2`
-#       https://github.com/pygame/pygame/issues/1272
 brew tap pygame/portmidi
-brew tap-pin pygame/portmidi
 
 check_local_bottles
 
@@ -142,8 +139,6 @@ install_or_upgrade sdl2_mixer
 install_or_upgrade sdl2_ttf
 
 set -e
-
-# brew install https://gist.githubusercontent.com/illume/08f9d3ca872dc2b61d80f665602233fd/raw/0fbfd6657da24c419d23a6678b5715a18cd6560a/portmidi.rb
 
 unset HOMEBREW_BUILD_BOTTLE
 unset HOMEBREW_BOTTLE_ARCH
