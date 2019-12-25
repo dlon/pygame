@@ -103,6 +103,8 @@ fi
 
 set +e
 
+TAP_SOURCE="dlon/portmidi/"
+
 brew tap dlon/portmidi
 
 check_local_bottles
@@ -110,21 +112,21 @@ check_local_bottles
 # install_or_upgrade sdl ${UNIVERSAL_FLAG}
 install_or_upgrade jpeg ${UNIVERSAL_FLAG}
 UPDATE_UNBOTTLED='1' install_or_upgrade libpng ${UNIVERSAL_FLAG}
-UPDATE_UNBOTTLED='1' install_or_upgrade xz ${UNIVERSAL_FLAG}
+UPDATE_UNBOTTLED='1' install_or_upgrade "${TAP_SOURCE}xz" ${UNIVERSAL_FLAG}
 UPDATE_UNBOTTLED='1' install_or_upgrade libtiff ${UNIVERSAL_FLAG}
 install_or_upgrade webp ${UNIVERSAL_FLAG}
-install_or_upgrade libogg ${UNIVERSAL_FLAG}
-install_or_upgrade libvorbis ${UNIVERSAL_FLAG}
-install_or_upgrade flac ${UNIVERSAL_FLAG}
-install_or_upgrade fluid-synth
-install_or_upgrade libmikmod ${UNIVERSAL_FLAG}
-# install_or_upgrade smpeg
-# install_or_upgrade smpeg2
+install_or_upgrade "${TAP_SOURCE}libogg" ${UNIVERSAL_FLAG}
+install_or_upgrade "${TAP_SOURCE}libvorbis" ${UNIVERSAL_FLAG}
+install_or_upgrade "${TAP_SOURCE}flac" ${UNIVERSAL_FLAG}
+install_or_upgrade "${TAP_SOURCE}fluid-synth"
+install_or_upgrade "${TAP_SOURCE}libmikmod" ${UNIVERSAL_FLAG}
+# install_or_upgrade "${TAP_SOURCE}smpeg"
+# install_or_upgrade "${TAP_SOURCE}smpeg2"
 
 
 # Because portmidi hates us... and installs python2, which messes homebrew up.
 # So we install portmidi from our own formula.
-install_or_upgrade portmidi ${UNIVERSAL_FLAG}
+install_or_upgrade "${TAP_SOURCE}portmidi" ${UNIVERSAL_FLAG}
 
 install_or_upgrade freetype ${UNIVERSAL_FLAG}
 # install_or_upgrade sdl_ttf ${UNIVERSAL_FLAG}
@@ -132,10 +134,10 @@ install_or_upgrade freetype ${UNIVERSAL_FLAG}
 # install_or_upgrade sdl_mixer ${UNIVERSAL_FLAG} --with-flac --with-fluid-synth --with-smpeg
 
 
-install_or_upgrade sdl2
+install_or_upgrade "${TAP_SOURCE}sdl2"
 install_or_upgrade sdl2_gfx
 install_or_upgrade sdl2_image
-install_or_upgrade sdl2_mixer
+install_or_upgrade "${TAP_SOURCE}sdl2_mixer"
 install_or_upgrade sdl2_ttf
 
 set -e
